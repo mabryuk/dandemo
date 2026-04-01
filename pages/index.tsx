@@ -1,6 +1,14 @@
 import Head from 'next/head';
 import { useState, useRef, useEffect, useCallback } from 'react';
 
+const DOC_STEPS = [
+  'Detecting document structure…',
+  'Extracting text content…',
+  'Identifying tables & fields…',
+  'Parsing claim metadata…',
+  'Indexing document sections…',
+];
+
 const VALIDATION_STEPS = [
   'Parsing claim document ID-4872-B…',
   'Referencing ADA Procedure Code Registry…',
@@ -17,8 +25,9 @@ type MsgRole = 'user' | 'agent';
 interface TextMsg { id: string; role: MsgRole; kind: 'text'; html: string; }
 interface FileMsg { id: string; role: 'user'; kind: 'file'; }
 interface TypingMsg { id: string; role: 'agent'; kind: 'typing'; }
-interface StepsMsg { id: string; role: 'agent'; kind: 'steps'; visible: number; done: number; }
-type Msg = TextMsg | FileMsg | TypingMsg | StepsMsg;
+interface StepsMsg    { id: string; role: 'agent'; kind: 'steps';  visible: number; done: number; }
+interface DocProcMsg  { id: string; role: 'agent'; kind: 'docproc'; visible: number; done: number; }
+type Msg = TextMsg | FileMsg | TypingMsg | StepsMsg | DocProcMsg;
 
 let _id = 0;
 const uid = () => String(++_id);
@@ -66,9 +75,29 @@ function StepsBubble({ msg }: { msg: StepsMsg }) {
           const isDone = i < msg.done;
           return (
             <div key={i} className={`step vis${isDone ? ' done' : ''}`}>
-              {isDone
-                ? <span className="step-check">✓</span>
-                : <span className="step-spin" />}
+              {isDone ? <span className="step-check">✓</span> : <span className="step-spin" />}
+              <span>{text}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function DocProcBubble({ msg }: { msg: DocProcMsg }) {
+  return (
+    <div className="bubble agent doc-proc-bubble">
+      <div className="doc-proc-header">
+        <span className="step-spin" style={{ width: 10, height: 10 }} />
+        <span className="doc-proc-title">Processing document…</span>
+      </div>
+      <div className="steps">
+        {DOC_STEPS.slice(0, msg.visible).map((text, i) => {
+          const isDone = i < msg.done;
+          return (
+            <div key={i} className={`step vis${isDone ? ' done' : ''}`}>
+              {isDone ? <span className="step-check">✓</span> : <span className="step-spin" />}
               <span>{text}</span>
             </div>
           );
@@ -80,8 +109,9 @@ function StepsBubble({ msg }: { msg: StepsMsg }) {
 
 function ChatMessage({ msg }: { msg: Msg }) {
   const label =
-    msg.role === 'user' ? 'YOU'
-    : msg.kind === 'steps' ? 'VALIDATION AGENT — THINKING'
+    msg.role === 'user'       ? 'YOU'
+    : msg.kind === 'steps'   ? 'VALIDATION AGENT — THINKING'
+    : msg.kind === 'docproc' ? 'SYSTEM'
     : 'VALIDATION AGENT';
 
   return (
@@ -90,6 +120,7 @@ function ChatMessage({ msg }: { msg: Msg }) {
       {msg.kind === 'file'    && <FileBubble />}
       {msg.kind === 'typing'  && <TypingBubble />}
       {msg.kind === 'steps'   && <StepsBubble msg={msg} />}
+      {msg.kind === 'docproc' && <DocProcBubble msg={msg} />}
       {msg.kind === 'text'    && (
         <div
           className={`bubble ${msg.role}`}
@@ -114,6 +145,14 @@ export default function Home() {
   const lockedRef = useRef(false);
 
   const setLock = (v: boolean) => { lockedRef.current = v; setLocked(v); };
+
+  const typeInput = useCallback(async (text: string, charDelay = 38) => {
+    setInputVal('');
+    for (let i = 1; i <= text.length; i++) {
+      await sleep(charDelay);
+      setInputVal(text.slice(0, i));
+    }
+  }, []);
 
   useEffect(() => {
     if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight;
@@ -141,18 +180,32 @@ export default function Home() {
     appendMsg({ id: uid(), role: 'user', kind: 'file' });
     setFileSent(true);
     setLock(true);
+
+    // Doc processing steps
+    const docId = uid();
+    appendMsg({ id: docId, role: 'agent', kind: 'docproc', visible: 0, done: 0 });
+    for (let i = 0; i < DOC_STEPS.length; i++) {
+      await sleep(840);
+      patchMsg(docId, { visible: i + 1 } as Partial<DocProcMsg>);
+      await sleep(760);
+      patchMsg(docId, { done: i + 1 } as Partial<DocProcMsg>);
+    }
+    await sleep(700);
+    dropMsg(docId);
+
+    // Greeting
     appendMsg({ id: uid(), role: 'agent', kind: 'typing' });
-    await sleep(2000);
+    await sleep(900);
     removeTyping();
     const id = uid();
     appendMsg({ id, role: 'agent', kind: 'text', html: '' });
     await sleep(50);
     patchMsg(id, {
-      html: `Hello! I'm ready to validate <b style="color:#f0f0f5">Insurance Claim ID-4872-B</b>. You can ask me questions about this claim, or ask me to run a full validation of the document.`,
+      html: `Hello! I'm ready to validate <b style="color:#eeeef5">Insurance Claim ID-4872-B</b>. You can ask me questions about this claim, or ask me to run a full validation of the document.`,
     });
     setLock(false);
-    setInputVal('Is procedure D2740 covered under this policy?');
-  }, [appendMsg, removeTyping, patchMsg]);
+    await typeInput('Is procedure D2740 covered under this policy?');
+  }, [appendMsg, removeTyping, patchMsg, dropMsg, typeInput]);
 
   const handleCoverageQuery = useCallback(async () => {
     setLock(true);
@@ -160,7 +213,7 @@ export default function Home() {
     await sleep(1400);
     removeTyping();
     const id = uid();
-    const base = `<b style="color:#f0f0f5">Is procedure D2740 covered under this policy?</b><br><br>Procedure code <b style="color:#f0f0f5">D2740 (Crown — Porcelain/Ceramic)</b> is listed as a covered service under <b style="color:#f0f0f5">Policy 404 — Major Restorative Services</b>, subject to the following conditions:`;
+    const base = `<b style="color:#eeeef5">Is procedure D2740 covered under this policy?</b><br><br>Procedure code <b style="color:#eeeef5">D2740 (Crown — Porcelain/Ceramic)</b> is listed as a covered service under <b style="color:#eeeef5">Policy 404 — Major Restorative Services</b>, subject to the following conditions:`;
     appendMsg({ id, role: 'agent', kind: 'text', html: base });
     await sleep(700);
     patchMsg(id, {
@@ -171,8 +224,8 @@ export default function Home() {
       html: base + `<div style="margin-top:12px;display:flex;flex-direction:column;gap:8px"><div class="cov-bullet">① A completed <b>Pre-Authorization Form (PAF-9)</b> must be submitted prior to treatment.</div><div class="cov-bullet">② Supporting <b>proof of clinical necessity</b> (X-rays or clinical notes) must accompany the claim.</div></div><hr class="cov-divider"><span class="cov-footer">Ask me to run a full agentic validation for a complete ruling.</span>`,
     });
     setLock(false);
-    setInputVal('Please run a full agentic validation on this claim.');
-  }, [appendMsg, removeTyping, patchMsg]);
+    await typeInput('Please run a full agentic validation on this claim.');
+  }, [appendMsg, removeTyping, patchMsg, typeInput]);
 
   const handleValidation = useCallback(async () => {
     setLock(true);
@@ -191,11 +244,11 @@ export default function Home() {
     dropMsg(stepsId);
 
     const id = uid();
-    const base2 = `<b style="color:#f0f0f5">Validation complete.</b> Cross-referenced with <b style="color:#f0f0f5">Policy 404</b>. Missing required <b style="color:#f0f0f5">Pre-Authorization attachment</b>.`;
+    const base2 = `<b style="color:#eeeef5">Validation complete.</b> Cross-referenced with <b style="color:#eeeef5">Policy 404</b>. Missing required <b style="color:#eeeef5">Pre-Authorization attachment</b>.`;
     appendMsg({ id, role: 'agent', kind: 'text', html: base2 });
     await sleep(650);
     patchMsg(id, {
-      html: base2 + `<div style="margin-top:12px"><span style="color:#f05353;font-weight:600">⛔ CLAIM REJECTED.</span><br><span style="font-size:11.5px;color:#55556a">Full report generated below.</span></div>`,
+      html: base2 + `<div style="margin-top:12px"><span style="color:#f05353;font-weight:600">⛔ CLAIM REJECTED.</span><br><span style="font-size:11.5px;color:#52526a">Full report generated below.</span></div>`,
     });
     await sleep(300);
     setShowReport(true);
@@ -265,7 +318,7 @@ export default function Home() {
               <path d="M9 12l2 2 4-4" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
-          <div>
+          <div className="hdr-text">
             <h1>Insurance Rule Validation</h1>
             <p>AI-powered compliance &amp; policy verification agent</p>
           </div>
@@ -279,7 +332,7 @@ export default function Home() {
           {!fileSent && filePreviewVisible && (
             <div className="chip">
               <FileIcon />
-              <div>
+              <div className="chip-info">
                 <div className="chip-name">Insurance Claim ID-4872-B.pdf</div>
                 <div className="chip-meta">2.3 MB · Dental Claim</div>
               </div>
@@ -291,7 +344,7 @@ export default function Home() {
           {fileSent && (
             <div className="chip">
               <FileIcon />
-              <div>
+              <div className="chip-info">
                 <div className="chip-name">Insurance Claim ID-4872-B.pdf</div>
                 <div className="chip-meta">Uploaded · 2.3 MB · Dental Claim</div>
               </div>

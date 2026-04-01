@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',system-ui,sans-serif;background:#09090b;display:flex;justify-content:center;align-items:flex-start;min-height:100vh;padding:32px 16px}
+.panel{width:100%;max-width:700px;background:#111115;border:1px solid #2a2a36;border-radius:20px;overflow:hidden;display:flex;flex-direction:column}
+
+/* Header */
+.hdr{background:linear-gradient(160deg,#13131a,#0e0e16);border-bottom:1px solid #2a2a36;padding:18px 22px;display:flex;align-items:center;gap:14px}
+.hdr-icon{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#2d5cbf,#4f8ef7);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.hdr h1{font-size:15px;font-weight:700;color:#f0f0f5;letter-spacing:-.01em}
+.hdr p{font-size:11px;color:#55556a;margin-top:2px}
+.active-pill{margin-left:auto;display:flex;align-items:center;gap:6px;background:rgba(61,186,126,.08);border:1px solid rgba(61,186,126,.2);border-radius:99px;padding:4px 10px;font-size:11px;font-weight:600;color:#3dba7e;white-space:nowrap}
+.active-dot{width:6px;height:6px;border-radius:50%;background:#3dba7e;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* Body */
+.body{padding:18px 20px;display:flex;flex-direction:column;gap:12px}
+
+/* Chip */
+.chip{display:flex;align-items:center;gap:10px;background:rgba(79,142,247,.06);border:1px solid rgba(79,142,247,.16);border-radius:12px;padding:10px 14px}
+.chip-name{font-size:12.5px;font-weight:600;color:#f0f0f5}
+.chip-meta{font-size:11px;color:#55556a;margin-top:2px}
+.chip-badge{margin-left:auto;font-size:10px;font-weight:700;letter-spacing:.05em;color:#4f8ef7;background:rgba(79,142,247,.1);border:1px solid rgba(79,142,247,.2);border-radius:99px;padding:3px 9px;white-space:nowrap}
+.chip-remove{margin-left:auto;background:none;border:none;cursor:pointer;color:#55556a;font-size:15px;line-height:1;padding:2px 4px}
+.chip-remove:hover{color:#9898b0}
+
+/* Chat */
+.chat{background:#09090b;border:1px solid #1f1f28;border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:14px;min-height:180px;max-height:360px;overflow-y:auto;scroll-behavior:smooth}
+.chat::-webkit-scrollbar{width:3px}
+.chat::-webkit-scrollbar-thumb{background:#2a2a36;border-radius:4px}
+.msg{display:flex;flex-direction:column;gap:4px}
+.msg.user{align-items:flex-end}
+.msg.agent{align-items:flex-start}
+.msg-label{font-size:10px;font-weight:600;color:#55556a;letter-spacing:.08em}
+.bubble{max-width:82%;padding:10px 14px;font-size:13px;line-height:1.65}
+.bubble.agent{background:#18181e;border:1px solid #2a2a36;color:#b8b8cc;border-radius:4px 16px 16px 16px}
+.bubble.user{background:linear-gradient(135deg,#2d5cbf,#4f8ef7);color:#e8eeff;border-radius:16px 4px 16px 16px;box-shadow:0 4px 16px rgba(79,142,247,.2)}
+.bubble.file-bbl{background:linear-gradient(135deg,#1a2a50,#1e2f5a);border:1px solid rgba(79,142,247,.2);border-radius:16px 4px 16px 16px;display:flex;align-items:center;gap:10px;padding:10px 14px}
+.file-bbl-name{font-size:12.5px;font-weight:600;color:#c8d0f0}
+.file-bbl-meta{font-size:11px;color:rgba(200,210,240,.4);margin-top:2px}
+
+/* Typing dots */
+.dots{display:inline-flex;gap:5px;align-items:center;padding:2px 0}
+.dot{width:6px;height:6px;border-radius:50%;background:#4f8ef7;display:inline-block}
+.dot:nth-child(1){animation:td 1.2s infinite 0s}
+.dot:nth-child(2){animation:td 1.2s infinite .2s}
+.dot:nth-child(3){animation:td 1.2s infinite .4s}
+@keyframes td{0%,80%,100%{opacity:.2;transform:scale(.7)}40%{opacity:1;transform:scale(1)}}
+
+/* Thinking steps */
+.steps{display:flex;flex-direction:column;gap:5px}
+.step{display:flex;align-items:center;gap:8px;font-size:12px;padding:5px 10px;border-radius:0 7px 7px 0;border-left:2px solid #2d5cbf;background:rgba(79,142,247,.06);color:#4f8ef7;opacity:0;transform:translateY(5px);transition:opacity .3s,transform .3s}
+.step.vis{opacity:1;transform:translateY(0)}
+.step.done{border-left-color:#3dba7e;background:rgba(61,186,126,.05);color:#3dba7e}
+.step-spin{width:10px;height:10px;border-radius:50%;border:2px solid #1a3a7c;border-top-color:#4f8ef7;flex-shrink:0;animation:spin .8s linear infinite}
+.step-check{font-size:11px;font-weight:700}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Coverage bullets */
+.cov-bullet{border-left:2px solid #2d5cbf;padding-left:10px;font-size:12.5px;color:#7878a0;margin-bottom:6px}
+.cov-bullet b{color:#b8b8cc}
+.cov-divider{border:none;border-top:1px solid #2a2a36;margin:10px 0}
+.cov-footer{font-size:11.5px;color:#55556a}
+
+/* Input */
+.input-row{display:flex;gap:8px}
+.txt-input{flex:1;background:#09090b;border:1px solid #2a2a36;border-radius:12px;padding:10px 15px;font-size:13px;color:#f0f0f5;font-family:inherit;outline:none;transition:border-color .2s}
+.txt-input::placeholder{color:#4a4a60}
+.txt-input:focus{border-color:#2d5cbf}
+.txt-input:disabled{opacity:.4;cursor:not-allowed}
+.send-btn{width:40px;height:40px;flex-shrink:0;background:linear-gradient(135deg,#2d5cbf,#4f8ef7);border:none;border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 14px rgba(79,142,247,.25);transition:opacity .15s}
+.send-btn:disabled{opacity:.3;cursor:not-allowed}
+.send-btn:hover:not(:disabled){opacity:.85}
+
+/* Report */
+.report{display:none;background:#09090b;border:1px solid #2a2a36;border-radius:14px;overflow:hidden;animation:fadeup .4s ease}
+.report.show{display:block}
+@keyframes fadeup{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.report-hdr{background:rgba(240,83,83,.08);border-bottom:1px solid rgba(240,83,83,.12);padding:11px 16px;display:flex;align-items:center;gap:10px}
+.report-dot{width:8px;height:8px;border-radius:50%;background:#f05353;box-shadow:0 0 6px #f05353;flex-shrink:0}
+.report-title{font-size:13px;font-weight:700;color:#f05353}
+.report-id{margin-left:auto;font-size:11px;color:#55556a}
+.report-rows{padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.report-row{display:flex;gap:12px;font-size:12.5px;align-items:flex-start}
+.rl{color:#55556a;font-weight:600;font-size:11px;letter-spacing:.05em;text-transform:uppercase;min-width:145px;padding-top:1px}
+.rv{color:#a0a0be}
+.tag{display:inline-block;font-size:11px;font-weight:600;padding:2px 9px;border-radius:99px}
+.tag.red{color:#f05353;background:rgba(240,83,83,.1);border:1px solid rgba(240,83,83,.2)}
+.tag.orange{color:#e8883a;background:rgba(232,136,58,.1);border:1px solid rgba(232,136,58,.2)}
+.tag.blue{color:#4f8ef7;background:rgba(79,142,247,.1);border:1px solid rgba(79,142,247,.2)}
+
+/* Draft btn */
+.draft-btn{width:100%;padding:11px;background:transparent;border:1px solid #2a2a36;border-radius:12px;color:#4f8ef7;font-size:13px;font-weight:500;font-family:inherit;cursor:pointer;display:none;align-items:center;justify-content:center;gap:8px;transition:background .15s,border-color .15s}
+.draft-btn:hover{background:rgba(79,142,247,.06);border-color:rgba(79,142,247,.35)}
+
+/* Toast */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(12px);background:#18181e;border:1px solid #2a2a36;color:#f0f0f5;padding:11px 20px;border-radius:12px;font-size:13px;font-weight:500;opacity:0;transition:all .3s ease;pointer-events:none;white-space:nowrap;box-shadow:0 8px 32px rgba(0,0,0,.5);z-index:999}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div class="panel">
+
+  <!-- Header -->
+  <div class="hdr">
+    <div class="hdr-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V7L12 2z" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="rgba(255,255,255,0.15)"/>
+        <path d="M9 12l2 2 4-4" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div>
+      <h1>Insurance Rule Validation</h1>
+      <p>AI-powered compliance & policy verification agent</p>
+    </div>
+    <div class="active-pill"><span class="active-dot"></span> Active</div>
+  </div>
+
+  <div class="body">
+
+    <!-- File preview (pre-send) -->
+    <div class="chip" id="filePreview">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" style="flex-shrink:0">
+        <rect x="4" y="2" width="12" height="16" rx="2" stroke="#4f8ef7" stroke-width="1.5" fill="rgba(79,142,247,0.08)"/>
+        <path d="M12 2v5h4" stroke="#4f8ef7" stroke-width="1.5" stroke-linejoin="round"/>
+        <path d="M7 14h6M7 11h4" stroke="#4f8ef7" stroke-width="1.2" stroke-linecap="round"/>
+      </svg>
+      <div>
+        <div class="chip-name">Insurance Claim ID-4872-B.pdf</div>
+        <div class="chip-meta">2.3 MB · Dental Claim</div>
+      </div>
+      <button class="chip-remove" onclick="document.getElementById('filePreview').style.display='none'">✕</button>
+    </div>
+
+    <!-- Attached chip (post-send) -->
+    <div class="chip" id="attachedChip" style="display:none">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" style="flex-shrink:0">
+        <rect x="4" y="2" width="12" height="16" rx="2" stroke="#4f8ef7" stroke-width="1.5" fill="rgba(79,142,247,0.08)"/>
+        <path d="M12 2v5h4" stroke="#4f8ef7" stroke-width="1.5" stroke-linejoin="round"/>
+        <path d="M7 14h6M7 11h4" stroke="#4f8ef7" stroke-width="1.2" stroke-linecap="round"/>
+      </svg>
+      <div>
+        <div class="chip-name">Insurance Claim ID-4872-B.pdf</div>
+        <div class="chip-meta">Uploaded · 2.3 MB · Dental Claim</div>
+      </div>
+      <span class="chip-badge">ATTACHED</span>
+    </div>
+
+    <!-- Chat window -->
+    <div class="chat" id="chat"></div>
+
+    <!-- Input -->
+    <div class="input-row">
+      <input class="txt-input" id="inp" placeholder="Send the file to begin…" onkeydown="if(event.key==='Enter')send()"/>
+      <button class="send-btn" id="sendBtn" onclick="send()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+          <path d="M22 2L11 13M22 2L15 22L11 13L2 9L22 2Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Report -->
+    <div class="report" id="report">
+      <div class="report-hdr">
+        <span class="report-dot"></span>
+        <span class="report-title">CLAIM REJECTED — Validation Complete</span>
+        <span class="report-id">ID-4872-B</span>
+      </div>
+      <div class="report-rows">
+        <div class="report-row"><span class="rl">Procedure Code</span><span class="rv">D2740 — Crown (Porcelain/Ceramic Substrate)</span></div>
+        <div class="report-row"><span class="rl">Policy Referenced</span><span class="rv">Policy 404 — Major Restorative Services</span></div>
+        <div class="report-row"><span class="rl">Compliance Std.</span><span class="rv">ADA Code Compliance v2024 · HIPAA §164.502</span></div>
+        <div class="report-row"><span class="rl">Rejection Reason</span><span class="rv"><span class="tag red">Missing Pre-Authorization</span> <span style="margin-left:6px">Required attachment not found.</span></span></div>
+        <div class="report-row"><span class="rl">Risk Level</span><span class="rv"><span class="tag orange">High</span></span></div>
+        <div class="report-row"><span class="rl">Recommended</span><span class="rv">Request Pre-Authorization form from submitting clinic before reprocessing.</span></div>
+        <div class="report-row"><span class="rl">Confidence</span><span class="rv"><span class="tag blue">97.4%</span></span></div>
+      </div>
+    </div>
+
+    <!-- Draft button -->
+    <button class="draft-btn" id="draftBtn" onclick="showToast()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="2" y="4" width="20" height="16" rx="2" stroke="#4f8ef7" stroke-width="1.8"/><path d="M2 4l10 9 10-9" stroke="#4f8ef7" stroke-width="1.8" stroke-linecap="round"/></svg>
+      Draft Missing Info Request to Clinic
+    </button>
+
+  </div>
+</div>
+
+<div class="toast" id="toast">✅ Missing Info Request drafted and queued for delivery to clinic.</div>
+
+<script>
+const STEPS = [
+  "Parsing claim document ID-4872-B…",
+  "Referencing ADA Procedure Code Registry…",
+  "Identifying procedure code D2740 (Crown)…",
+  "Cross-referencing with Policy 404…",
+  "Searching internal pre-authorization rules…",
+  "Checking attached documentation for pre-auth…",
+  "Validating HIPAA compliance requirements…",
+  "Compiling final ruling…"
+];
+
+let fileSent = false, locked = false;
+const chat = document.getElementById('chat');
+const inp  = document.getElementById('inp');
+const btn  = document.getElementById('sendBtn');
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+function lock()   { locked=true;  inp.disabled=true;  btn.disabled=true; }
+function unlock(v='') { locked=false; inp.disabled=false; btn.disabled=false; inp.value=v; }
+
+function scrollBot() { chat.scrollTop = chat.scrollHeight; }
+
+function addMsg(role, html) {
+  const w = document.createElement('div');
+  w.className = `msg ${role}`;
+  w.innerHTML = `<span class="msg-label">${role==='user'?'YOU':'VALIDATION AGENT'}</span><div class="bubble ${role}">${html}</div>`;
+  chat.appendChild(w); scrollBot(); return w;
+}
+
+function addFileBubble() {
+  const w = document.createElement('div');
+  w.className = 'msg user';
+  w.innerHTML = `<span class="msg-label">YOU</span>
+    <div class="bubble file-bbl">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" style="flex-shrink:0">
+        <rect x="4" y="2" width="12" height="16" rx="2" stroke="#4f8ef7" stroke-width="1.5" fill="rgba(79,142,247,0.08)"/>
+        <path d="M12 2v5h4" stroke="#4f8ef7" stroke-width="1.5" stroke-linejoin="round"/>
+        <path d="M7 14h6M7 11h4" stroke="#4f8ef7" stroke-width="1.2" stroke-linecap="round"/>
+      </svg>
+      <div><div class="file-bbl-name">Insurance Claim ID-4872-B.pdf</div><div class="file-bbl-meta">2.3 MB · Dental Claim</div></div>
+    </div>`;
+  chat.appendChild(w); scrollBot();
+}
+
+function addTyping() {
+  const w = document.createElement('div');
+  w.className = 'msg agent'; w.id = 'typing';
+  w.innerHTML = `<span class="msg-label">VALIDATION AGENT</span><div class="bubble agent"><div class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div></div>`;
+  chat.appendChild(w); scrollBot(); return w;
+}
+
+function removeTyping() { const t=document.getElementById('typing'); if(t)t.remove(); }
+
+function typeChunks(bubbleEl, chunks, done) {
+  let i = 0;
+  function next() {
+    if (i >= chunks.length) { if(done) done(); return; }
+    const {d, html} = chunks[i++];
+    setTimeout(() => { bubbleEl.innerHTML += html; scrollBot(); next(); }, d);
+  }
+  next();
+}
+
+async function send() {
+  if (locked) return;
+  const fp = document.getElementById('filePreview');
+  const fileVis = fp && fp.style.display !== 'none';
+
+  if (!fileSent && fileVis) {
+    fp.style.display = 'none';
+    document.getElementById('attachedChip').style.display = 'flex';
+    addFileBubble();
+    fileSent = true;
+    lock();
+    addTyping();
+    await sleep(2000);
+    removeTyping();
+    const w = addMsg('agent', '');
+    const b = w.querySelector('.bubble');
+    typeChunks(b, [
+      {d:0, html:`Hello! I'm ready to validate <b style="color:#f0f0f5">Insurance Claim ID-4872-B</b>. You can ask me questions about this claim, or ask me to run a full validation of the document.`}
+    ], () => unlock("Is procedure D2740 covered under this policy?"));
+    return;
+  }
+
+  const val = inp.value.trim();
+  if (!val) return;
+  addMsg('user', val);
+  inp.value = '';
+
+  const isCov = val.toLowerCase().includes('d2740') && val.toLowerCase().includes('covered');
+  const isVal = val.toLowerCase().includes('validation') || val.toLowerCase().includes('full');
+
+  if (isCov) {
+    lock();
+    addTyping();
+    await sleep(1400);
+    removeTyping();
+    const w = addMsg('agent','');
+    const b = w.querySelector('.bubble');
+    typeChunks(b, [
+      {d:0,   html:`<b style="color:#f0f0f5">Is procedure D2740 covered under this policy?</b><br><br>Procedure code <b style="color:#f0f0f5">D2740 (Crown — Porcelain/Ceramic)</b> is listed as a covered service under <b style="color:#f0f0f5">Policy 404 — Major Restorative Services</b>, subject to the following conditions:`},
+      {d:700, html:`<div style="margin-top:12px;display:flex;flex-direction:column;gap:8px"><div class="cov-bullet">① A completed <b>Pre-Authorization Form (PAF-9)</b> must be submitted prior to treatment.</div><div class="cov-bullet">② Supporting <b>proof of clinical necessity</b> (X-rays or clinical notes) must accompany the claim.</div></div>`},
+      {d:500, html:`<hr class="cov-divider"><span class="cov-footer">Ask me to run a full agentic validation for a complete ruling.</span>`}
+    ], () => unlock("Please run a full agentic validation on this claim."));
+
+  } else if (isVal) {
+    lock();
+    await sleep(300);
+    await runValidation();
+  } else {
+    lock();
+    addTyping();
+    await sleep(900);
+    removeTyping();
+    addMsg('agent', "I've noted your query. Ask me to run a full agentic validation for a formal ruling on this claim.");
+    unlock();
+  }
+}
+
+async function runValidation() {
+  const w = document.createElement('div');
+  w.className = 'msg agent';
+  w.innerHTML = `<span class="msg-label">VALIDATION AGENT — THINKING</span><div class="bubble agent"><div class="steps" id="steps"></div></div>`;
+  chat.appendChild(w); scrollBot();
+  const stepsEl = document.getElementById('steps');
+
+  for (let i = 0; i < STEPS.length; i++) {
+    await sleep(620);
+    const s = document.createElement('div');
+    s.className = 'step';
+    s.innerHTML = `<span class="step-spin"></span><span>${STEPS[i]}</span>`;
+    stepsEl.appendChild(s);
+    scrollBot();
+    await sleep(30); s.classList.add('vis');
+    await sleep(560);
+    s.classList.add('done');
+    s.innerHTML = `<span class="step-check">✓</span><span>${STEPS[i]}</span>`;
+  }
+
+  await sleep(500);
+  w.remove();
+
+  const rw = addMsg('agent','');
+  const b = rw.querySelector('.bubble');
+  typeChunks(b, [
+    {d:0,   html:`<b style="color:#f0f0f5">Validation complete.</b> Cross-referenced with <b style="color:#f0f0f5">Policy 404</b>. Missing required <b style="color:#f0f0f5">Pre-Authorization attachment</b>.`},
+    {d:650, html:`<div style="margin-top:12px"><span style="color:#f05353;font-weight:600">⛔ CLAIM REJECTED.</span><br><span style="font-size:11.5px;color:#55556a">Full report generated below.</span></div>`}
+  ], () => {
+    setTimeout(() => {
+      document.getElementById('report').classList.add('show');
+      const db = document.getElementById('draftBtn');
+      db.style.display = 'flex';
+      unlock('');
+    }, 300);
+  });
+}
+
+function showToast() {
+  const t = document.getElementById('toast');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>

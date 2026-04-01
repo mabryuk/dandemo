@@ -140,11 +140,16 @@ export default function Home() {
   const [showReport, setShowReport] = useState(false);
   const [showDraftBtn, setShowDraftBtn] = useState(false);
   const [toastVisible, setToastVisible] = useState(false);
+  const [isDark, setIsDark] = useState(true);
 
   const chatRef  = useRef<HTMLDivElement>(null);
   const lockedRef = useRef(false);
 
   const setLock = (v: boolean) => { lockedRef.current = v; setLocked(v); };
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  }, [isDark]);
 
   const typeInput = useCallback(async (text: string, charDelay = 38) => {
     setInputVal('');
@@ -201,7 +206,7 @@ export default function Home() {
     appendMsg({ id, role: 'agent', kind: 'text', html: '' });
     await sleep(50);
     patchMsg(id, {
-      html: `Hello! I'm ready to validate <b style="color:#eeeef5">Insurance Claim ID-4872-B</b>. You can ask me questions about this claim, or ask me to run a full validation of the document.`,
+      html: `Hello! I'm ready to validate <b class="hl">Insurance Claim ID-4872-B</b>. You can ask me questions about this claim, or ask me to run a full validation of the document.`,
     });
     setLock(false);
     await typeInput('Is procedure D2740 covered under this policy?');
@@ -213,7 +218,7 @@ export default function Home() {
     await sleep(1400);
     removeTyping();
     const id = uid();
-    const base = `<b style="color:#eeeef5">Is procedure D2740 covered under this policy?</b><br><br>Procedure code <b style="color:#eeeef5">D2740 (Crown — Porcelain/Ceramic)</b> is listed as a covered service under <b style="color:#eeeef5">Policy 404 — Major Restorative Services</b>, subject to the following conditions:`;
+    const base = `<b class="hl">Is procedure D2740 covered under this policy?</b><br><br>Procedure code <b class="hl">D2740 (Crown — Porcelain/Ceramic)</b> is listed as a covered service under <b class="hl">Policy 404 — Major Restorative Services</b>, subject to the following conditions:`;
     appendMsg({ id, role: 'agent', kind: 'text', html: base });
     await sleep(700);
     patchMsg(id, {
@@ -244,11 +249,11 @@ export default function Home() {
     dropMsg(stepsId);
 
     const id = uid();
-    const base2 = `<b style="color:#eeeef5">Validation complete.</b> Cross-referenced with <b style="color:#eeeef5">Policy 404</b>. Missing required <b style="color:#eeeef5">Pre-Authorization attachment</b>.`;
+    const base2 = `<b class="hl">Validation complete.</b> Cross-referenced with <b class="hl">Policy 404</b>. Missing required <b class="hl">Pre-Authorization attachment</b>.`;
     appendMsg({ id, role: 'agent', kind: 'text', html: base2 });
     await sleep(650);
     patchMsg(id, {
-      html: base2 + `<div style="margin-top:12px"><span style="color:#f05353;font-weight:600">⛔ CLAIM REJECTED.</span><br><span style="font-size:11.5px;color:#52526a">Full report generated below.</span></div>`,
+      html: base2 + `<div style="margin-top:12px"><span class="hl-red">⛔ CLAIM REJECTED.</span><br><span class="hl-mute">Full report generated below.</span></div>`,
     });
     await sleep(300);
     setShowReport(true);
@@ -322,9 +327,18 @@ export default function Home() {
             <h1>Insurance Rule Validation</h1>
             <p>AI-powered compliance &amp; policy verification agent</p>
           </div>
-          <div className="active-pill">
-            <span className="active-dot" /> Active
-          </div>
+          <button className="theme-btn" onClick={() => setIsDark(d => !d)} aria-label="Toggle theme">
+            {isDark ? (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="5" stroke="currentColor" strokeWidth="1.8"/>
+                <path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+              </svg>
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            )}
+          </button>
         </div>
 
         <div className="body">

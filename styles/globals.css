@@ -26,6 +26,52 @@
   --radius-xl:  26px;
 }
 
+/* ── Light theme overrides ──────────────────────────────────── */
+[data-theme="light"] {
+  --bg:        #f0f0f5;
+  --surface:   #ffffff;
+  --surface-2: #f5f5fa;
+  --surface-3: #eaeaf2;
+  --border:    rgba(0,0,0,0.08);
+  --border-2:  rgba(0,0,0,0.04);
+
+  --text-1:    #111118;
+  --text-2:    #44445a;
+  --text-3:    #888899;
+}
+
+[data-theme="light"] body::before {
+  background-image:
+    linear-gradient(rgba(79,142,247,0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(79,142,247,0.06) 1px, transparent 1px);
+}
+
+[data-theme="light"] .bubble.agent {
+  background: #ffffff;
+  color: var(--text-2);
+  border-color: var(--border);
+}
+
+[data-theme="light"] .bubble.user {
+  box-shadow: 0 4px 20px rgba(79,142,247,0.28);
+}
+
+[data-theme="light"] .chat {
+  background: var(--surface-2);
+}
+
+[data-theme="light"] .hdr {
+  background: linear-gradient(180deg, rgba(79,142,247,0.05) 0%, transparent 100%);
+}
+
+[data-theme="light"] .txt-input {
+  background: #ffffff;
+}
+
+[data-theme="light"] .report {
+  background: #ffffff;
+}
+
 html { -webkit-font-smoothing: antialiased; }
 
 body {
@@ -127,27 +173,24 @@ body::before {
   text-overflow: ellipsis;
 }
 
-.active-pill {
+.theme-btn {
   flex-shrink: 0;
+  width: 34px;
+  height: 34px;
   display: flex;
   align-items: center;
-  gap: 6px;
-  background: rgba(61,186,126,0.08);
-  border: 1px solid rgba(61,186,126,0.2);
-  border-radius: 99px;
-  padding: 5px 11px;
-  font-size: 10.5px;
-  font-weight: 600;
-  color: var(--green);
-  letter-spacing: 0.02em;
+  justify-content: center;
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-2);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, transform 0.15s;
 }
-.active-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--green);
-  box-shadow: 0 0 6px var(--green);
-  animation: pulse 2.4s ease-in-out infinite;
+.theme-btn:hover {
+  background: var(--surface-2);
+  color: var(--text-1);
+  transform: rotate(12deg);
 }
 @keyframes pulse {
   0%,100% { opacity: 1; transform: scale(1); }
@@ -353,6 +396,11 @@ body::before {
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
+
+/* ── Inline HTML content helpers (dangerouslySetInnerHTML) ───── */
+.hl      { color: var(--text-1); font-weight: 600; }
+.hl-red  { color: var(--red);    font-weight: 600; }
+.hl-mute { color: var(--text-3); font-size: 11.5px; }
 
 /* ── Coverage bullets (rendered inside dangerouslySetInnerHTML) */
 .cov-bullet {
